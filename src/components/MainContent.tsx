@@ -1,4 +1,3 @@
-// src/components/MainContent.tsx
 import React from 'react';
 import {
   Box,
@@ -9,6 +8,7 @@ import {
   Typography,
   IconButton,
   CircularProgress,
+  Rating,
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 
@@ -85,6 +85,15 @@ export const MainContent: React.FC<MainContentProps> = ({
               <Typography variant="h4" gutterBottom>
                 {p.title}
               </Typography>
+              <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+                {p.brand}
+              </Typography>
+              <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                <Rating value={p.rating} precision={0.1} readOnly size="small" />
+                <Typography variant="body2" sx={{ ml: 1 }}>
+                  {p.rating.toFixed(1)}
+                </Typography>
+              </Box>
               <Typography variant="body1" paragraph>
                 {p.description}
               </Typography>
@@ -133,7 +142,16 @@ export const MainContent: React.FC<MainContentProps> = ({
                 <Typography variant="subtitle1" noWrap>
                   {p.title}
                 </Typography>
-                <Typography variant="body2" noWrap>
+                <Typography variant="body2" color="text.secondary" noWrap>
+                  {p.brand}
+                </Typography>
+                <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                  <Rating value={p.rating} precision={0.1} readOnly size="small" />
+                  <Typography variant="body2" sx={{ ml: 1 }}>
+                    {p.rating.toFixed(2)}
+                  </Typography>
+                </Box>
+                <Typography variant="body2" noWrap sx={{ mt: 1 }}>
                   {p.description}
                 </Typography>
                 <Typography variant="body2">

@@ -6,6 +6,7 @@ import { Layout } from './components/Layout';
 import { Signup } from './pages/Signup';
 import { Signin } from './pages/signIn';
 import { ProductsPage } from './pages/ProductsPage';
+import { ProfilePage } from './pages/ProfilePage'; // ← import it
 import { ProtectedRoute } from './components/ProtectedRoute';
 
 const App: React.FC = () => (
@@ -21,6 +22,9 @@ const App: React.FC = () => (
           {/* protected */}
           <Route path="/products" element={<ProtectedRoute />}>
             <Route index element={<ProductsPage />} />
+          </Route>
+          <Route path="/profile" element={<ProtectedRoute />}>
+            <Route index element={<ProfilePage />} />
           </Route>
 
           {/* fallback */}

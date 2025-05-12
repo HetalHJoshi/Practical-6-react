@@ -1,6 +1,17 @@
-// src/components/Sidebar.tsx
 import React, { useState, useEffect, useRef } from 'react';
-import { Box, Typography, FormGroup, FormControlLabel, Checkbox } from '@mui/material';
+import {
+  Box,
+  Typography,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  FormGroup,
+  FormControlLabel,
+  Checkbox,
+} from '@mui/material';
+
+export type SortOption = 'nameAsc' | 'nameDesc' | 'priceAsc' | 'priceDesc';
 
 export interface SidebarFilters {
   categories: string[];
@@ -13,16 +24,23 @@ interface SidebarProps {
   categories: string[];
   brands: string[];
   onFilterChange: (changes: Partial<SidebarFilters>) => void;
+  sortOption: SortOption;
+  onSortChange: (option: SortOption) => void;
 }
 
-export const Sidebar: React.FC<SidebarProps> = ({ categories, brands, onFilterChange }) => {
+export const Sidebar: React.FC<SidebarProps> = ({
+  categories,
+  brands,
+  onFilterChange,
+  sortOption,
+  onSortChange,
+}) => {
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [selectedBrands, setSelectedBrands] = useState<string[]>([]);
   const [selectedPriceRanges, setSelectedPriceRanges] = useState<[number, number][]>([]);
   const [selectedRatingRanges, setSelectedRatingRanges] = useState<[number, number][]>([]);
   const isFirstUpdate = useRef(true);
 
-  // static options for price & rating
   const priceOptions: { label: string; range: [number, number] }[] = [
     { label: '$0–50', range: [0, 50] },
     { label: '$51–100', range: [51, 100] },
@@ -30,14 +48,13 @@ export const Sidebar: React.FC<SidebarProps> = ({ categories, brands, onFilterCh
     { label: '$201+', range: [201, Infinity] },
   ];
   const ratingOptions: { label: string; range: [number, number] }[] = [
-    { label: '1★ & up', range: [1, 5] },
-    { label: '2★ & up', range: [2, 5] },
-    { label: '3★ & up', range: [3, 5] },
-    { label: '4★ & up', range: [4, 5] },
-    { label: '5★', range: [5, 5] },
+    { label: '1★ & up', range: [1, Infinity] },
+    { label: '2★ & up', range: [2, Infinity] },
+    { label: '3★ & up', range: [3, Infinity] },
+    { label: '4★ & up', range: [4, Infinity] },
+    { label: '5★ & up', range: [5, Infinity] },
   ];
 
-  // emit new filters whenever anything changes (skip initial mount)
   useEffect(() => {
     if (isFirstUpdate.current) {
       isFirstUpdate.current = false;
@@ -66,16 +83,38 @@ export const Sidebar: React.FC<SidebarProps> = ({ categories, brands, onFilterCh
         flexShrink: 0,
       }}
     >
-      <Typography variant="h6" gutterBottom>
+      {/* Sort controls */}
+      <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 1 }}>
+        Sort By
+      </Typography>
+      <FormControl fullWidth size="small" sx={{ mb: 2 }}>
+        <InputLabel id="sort-label">Option</InputLabel>
+        <Select
+          labelId="sort-label"
+          label="Option"
+          value={sortOption}
+          onChange={e => onSortChange(e.target.value as SortOption)}
+        >
+          <MenuItem value="nameAsc">Name A → Z</MenuItem>
+          <MenuItem value="nameDesc">Name Z → A</MenuItem>
+          <MenuItem value="priceAsc">Price Low → High</MenuItem>
+          <MenuItem value="priceDesc">Price High → Low</MenuItem>
+        </Select>
+      </FormControl>
+
+      {/* Filters Section Title */}
+      <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 1 }}>
         Filters
       </Typography>
 
       {/* Category */}
-      <Typography variant="subtitle1">Category</Typography>
+      <Typography variant="body2" sx={{ fontWeight: 'bold', mb: 0.5 }}>
+        Category
+      </Typography>
       <FormGroup>
-        {categories.map(cat => (
+        {categories.map((cat, idx) => (
           <FormControlLabel
-            key={cat}
+            key={`${cat}-${idx}`}
             control={
               <Checkbox
                 checked={selectedCategories.includes(cat)}
@@ -92,13 +131,13 @@ export const Sidebar: React.FC<SidebarProps> = ({ categories, brands, onFilterCh
       </FormGroup>
 
       {/* Brand */}
-      <Typography variant="subtitle1" sx={{ mt: 2 }}>
+      <Typography variant="body2" sx={{ mt: 2, fontWeight: 'bold', mb: 0.5 }}>
         Brand
       </Typography>
       <FormGroup>
-        {brands.map(br => (
+        {brands.map((br, idx) => (
           <FormControlLabel
-            key={br}
+            key={`${br}-${idx}`}
             control={
               <Checkbox
                 checked={selectedBrands.includes(br)}
@@ -115,13 +154,13 @@ export const Sidebar: React.FC<SidebarProps> = ({ categories, brands, onFilterCh
       </FormGroup>
 
       {/* Price */}
-      <Typography variant="subtitle1" sx={{ mt: 2 }}>
+      <Typography variant="body2" sx={{ mt: 2, fontWeight: 'bold', mb: 0.5 }}>
         Price
       </Typography>
       <FormGroup>
-        {priceOptions.map(({ label, range }) => (
+        {priceOptions.map(({ label, range }, idx) => (
           <FormControlLabel
-            key={label}
+            key={`${label}-${idx}`}
             control={
               <Checkbox
                 checked={selectedPriceRanges.some(r => r[0] === range[0] && r[1] === range[1])}
@@ -140,13 +179,13 @@ export const Sidebar: React.FC<SidebarProps> = ({ categories, brands, onFilterCh
       </FormGroup>
 
       {/* Rating */}
-      <Typography variant="subtitle1" sx={{ mt: 2 }}>
+      <Typography variant="body2" sx={{ mt: 2, fontWeight: 'bold', mb: 0.5 }}>
         Rating
       </Typography>
       <FormGroup>
-        {ratingOptions.map(({ label, range }) => (
+        {ratingOptions.map(({ label, range }, idx) => (
           <FormControlLabel
-            key={label}
+            key={`${label}-${idx}`}
             control={
               <Checkbox
                 checked={selectedRatingRanges.some(r => r[0] === range[0] && r[1] === range[1])}

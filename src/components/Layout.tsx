@@ -2,6 +2,7 @@
 import React from 'react';
 import { Box } from '@mui/material';
 import { useLocation } from 'react-router-dom';
+import { SearchProvider } from '../context/SearchContext';
 import { Header } from './Header';
 import { Footer } from './Footer';
 
@@ -11,8 +12,6 @@ interface LayoutProps {
 
 export const Layout: React.FC<LayoutProps> = ({ children }) => {
   const { pathname } = useLocation();
-
-  // paths where we don't want header/footer
   const noLayoutPaths = ['/signin', '/signup'];
   const hideLayout = noLayoutPaths.includes(pathname);
 
@@ -24,13 +23,21 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
         minHeight: '100vh',
       }}
     >
-      {!hideLayout && <Header />}
+      {hideLayout ? (
+        <Box component="main" sx={{ flexGrow: 1 }}>
+          {children}
+        </Box>
+      ) : (
+        <SearchProvider>
+          <Header />
 
-      <Box component="main" sx={{ flexGrow: 1 }}>
-        {children}
-      </Box>
+          <Box component="main" sx={{ flexGrow: 1 }}>
+            {children}
+          </Box>
 
-      {!hideLayout && <Footer />}
+          <Footer />
+        </SearchProvider>
+      )}
     </Box>
   );
 };
