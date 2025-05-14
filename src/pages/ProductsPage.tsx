@@ -1,8 +1,12 @@
+// src/pages/ProductsPage.tsx
 import React, { useEffect, useState, useMemo, useCallback, useDeferredValue } from 'react';
-import { Box, Button, useTheme, useMediaQuery, Drawer } from '@mui/material';
-import { Sidebar, type SidebarFilters, type SortOption } from '../components/Sidebar';
-import { MainContent, type Product } from '../components/MainContent';
+import { Box, Button, useTheme, useMediaQuery } from '@mui/material';
+import { MainContent } from '../components/MainContent';
+import { DesktopSidebar } from '../components/Products/DesktopSidebar';
+import { MobileFilterDrawer } from '../components/Products/MobileFilterDrawer';
+import type { Product } from '../types/Product';
 import { useSearch } from '../context/SearchContext';
+import type { SidebarFilters, SortOption } from '../components/Sidebar/types';
 
 const PAGE_SIZE = 20;
 
@@ -25,18 +29,18 @@ export const ProductsPage: React.FC = () => {
   const [page, setPage] = useState(1);
   const [drawerOpen, setDrawerOpen] = useState(false);
 
-  // Fetch products
+  // Fetch products once
   useEffect(() => {
     const fetchProducts = async () => {
+      setLoading(true);
       try {
         const res = await fetch('https://dummyjson.com/products?limit=100');
-        if (!res.ok) throw new Error();
-        const data = await res.json();
+        const data = res.ok
+          ? await res.json()
+          : await (await fetch('http://dummyjson.com/products?limit=100')).json();
         setAllProducts(data.products);
-      } catch {
-        const res = await fetch('http://dummyjson.com/products?limit=100');
-        const data = await res.json();
-        setAllProducts(data.products);
+      } catch (err) {
+        console.error('Error loading products', err);
       } finally {
         setLoading(false);
       }
@@ -44,7 +48,7 @@ export const ProductsPage: React.FC = () => {
     fetchProducts();
   }, []);
 
-  // Filter
+  // Apply search + filter
   const filteredProducts = useMemo(() => {
     let result = allProducts;
     const q = deferredSearchTerm.trim().toLowerCase();
@@ -53,24 +57,26 @@ export const ProductsPage: React.FC = () => {
         p => p.title.toLowerCase().includes(q) || p.description.toLowerCase().includes(q),
       );
     }
-    if (filters.categories.length)
+    if (filters.categories.length) {
       result = result.filter(p => filters.categories.includes(p.category));
-    if (filters.brands.length) result = result.filter(p => filters.brands.includes(p.brand));
+    }
+    if (filters.brands.length) {
+      result = result.filter(p => filters.brands.includes(p.brand));
+    }
     if (filters.priceRanges.length) {
       result = result.filter(p =>
         filters.priceRanges.some(([min, max]) => p.price >= min && p.price <= max),
       );
     }
     if (filters.ratingRanges.length) {
-      result = result.filter(p => {
-        const rating = (p as any).rating ?? 0;
-        return filters.ratingRanges.some(([min, max]) => rating >= min && rating <= max);
-      });
+      result = result.filter(p =>
+        filters.ratingRanges.some(([min, max]) => p.rating >= min && p.rating <= max),
+      );
     }
     return result;
   }, [allProducts, deferredSearchTerm, filters]);
 
-  // Sort
+  // Apply sort
   const sortedProducts = useMemo(() => {
     const arr = [...filteredProducts];
     switch (sortOption) {
@@ -90,7 +96,7 @@ export const ProductsPage: React.FC = () => {
     return arr;
   }, [filteredProducts, sortOption]);
 
-  // Infinite scroll
+  // Infinite-scroll pagination
   useEffect(() => {
     const onScroll = () => {
       if (window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 200) {
@@ -101,48 +107,43 @@ export const ProductsPage: React.FC = () => {
     return () => window.removeEventListener('scroll', onScroll);
   }, [sortedProducts.length]);
 
+  // Slice out only the current “page”
   const displayed = useMemo(
     () => sortedProducts.slice(0, page * PAGE_SIZE),
     [sortedProducts, page],
   );
 
+  // Handlers for filter & sort (reset page & close drawer on mobile)
   const handleFilterChange = useCallback((changes: Partial<SidebarFilters>) => {
     setFilters(prev => ({ ...prev, ...changes }));
     setPage(1);
+    setDrawerOpen(false);
   }, []);
-
   const handleSortChange = useCallback((opt: SortOption) => {
     setSortOption(opt);
     setPage(1);
+    setDrawerOpen(false);
   }, []);
 
   return (
     <Box display="flex">
+      {/* Desktop sidebar (only when no product is selected) */}
       {!selected && !isMobile && (
-        <Box
-          sx={{
-            position: 'sticky',
-            top: theme.mixins.toolbar.minHeight,
-            alignSelf: 'flex-start',
-          }}
-        >
-          <Sidebar
-            categories={Array.from(new Set(allProducts.map(p => p.category)))}
-            brands={Array.from(new Set(allProducts.map(p => p.brand)))}
-            sortOption={sortOption}
-            onSortChange={handleSortChange}
-            onFilterChange={handleFilterChange}
-          />
-        </Box>
+        <DesktopSidebar
+          products={allProducts}
+          sortOption={sortOption}
+          onSortChange={handleSortChange}
+          onFilterChange={handleFilterChange}
+        />
       )}
 
+      {/* Main content */}
       <Box sx={{ flex: 1 }}>
         {isMobile && (
           <Button variant="outlined" onClick={() => setDrawerOpen(true)} sx={{ mb: 2 }}>
             Filter & Sort
           </Button>
         )}
-
         <MainContent
           products={selected ? [selected] : displayed}
           loading={loading}
@@ -152,25 +153,16 @@ export const ProductsPage: React.FC = () => {
         />
       </Box>
 
-      {/* Drawer for mobile */}
+      {/* Mobile drawer */}
       {isMobile && (
-        <Drawer anchor="left" open={drawerOpen} onClose={() => setDrawerOpen(false)}>
-          <Box sx={{ width: 280, p: 2 }}>
-            <Sidebar
-              categories={Array.from(new Set(allProducts.map(p => p.category)))}
-              brands={Array.from(new Set(allProducts.map(p => p.brand)))}
-              sortOption={sortOption}
-              onSortChange={opt => {
-                handleSortChange(opt);
-                setDrawerOpen(false);
-              }}
-              onFilterChange={changes => {
-                handleFilterChange(changes);
-                setDrawerOpen(false);
-              }}
-            />
-          </Box>
-        </Drawer>
+        <MobileFilterDrawer
+          open={drawerOpen}
+          onClose={() => setDrawerOpen(false)}
+          products={allProducts}
+          sortOption={sortOption}
+          onSortChange={handleSortChange}
+          onFilterChange={handleFilterChange}
+        />
       )}
     </Box>
   );

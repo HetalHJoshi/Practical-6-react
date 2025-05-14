@@ -1,20 +1,12 @@
-// src/pages/ProductsPage.tsx
-import React, { useEffect, useState, useMemo, useCallback, useDeferredValue } from 'react';
-import { Box, Button, useTheme, useMediaQuery } from '@mui/material';
-import { MainContent } from '../components/MainContent';
-import { DesktopSidebar } from '../components/Products/DesktopSidebar';
-import { MobileFilterDrawer } from '../components/Products/MobileFilterDrawer';
-import type { Product } from '../types/Product';
+// src/hooks/useProducts.ts
+import { useState, useEffect, useMemo, useCallback, useDeferredValue } from 'react';
 import { useSearch } from '../context/SearchContext';
+import type { Product } from '../types/Product';
 import type { SidebarFilters, SortOption } from '../components/Sidebar/types';
 
-const PAGE_SIZE = 20;
-
-export const ProductsPage: React.FC = () => {
-  const theme = useTheme();
+export function useProducts(pageSize: number) {
   const { searchTerm } = useSearch();
   const deferredSearchTerm = useDeferredValue(searchTerm);
-  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 
   const [allProducts, setAllProducts] = useState<Product[]>([]);
   const [filters, setFilters] = useState<SidebarFilters>({
@@ -27,9 +19,8 @@ export const ProductsPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState<Product | null>(null);
   const [page, setPage] = useState(1);
-  const [drawerOpen, setDrawerOpen] = useState(false);
 
-  // Fetch products once
+  // 1. Fetch once
   useEffect(() => {
     const fetchProducts = async () => {
       setLoading(true);
@@ -48,8 +39,8 @@ export const ProductsPage: React.FC = () => {
     fetchProducts();
   }, []);
 
-  // Apply search + filter
-  const filteredProducts = useMemo(() => {
+  // 2. Filter + search
+  const filtered = useMemo(() => {
     let result = allProducts;
     const q = deferredSearchTerm.trim().toLowerCase();
     if (q) {
@@ -76,9 +67,9 @@ export const ProductsPage: React.FC = () => {
     return result;
   }, [allProducts, deferredSearchTerm, filters]);
 
-  // Apply sort
-  const sortedProducts = useMemo(() => {
-    const arr = [...filteredProducts];
+  // 3. Sort
+  const sorted = useMemo(() => {
+    const arr = [...filtered];
     switch (sortOption) {
       case 'nameAsc':
         arr.sort((a, b) => a.title.localeCompare(b.title));
@@ -94,76 +85,44 @@ export const ProductsPage: React.FC = () => {
         break;
     }
     return arr;
-  }, [filteredProducts, sortOption]);
+  }, [filtered, sortOption]);
 
-  // Infinite-scroll pagination
+  // 4. Infinite‐scroll pagination
   useEffect(() => {
     const onScroll = () => {
       if (window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 200) {
-        setPage(p => Math.min(p + 1, Math.ceil(sortedProducts.length / PAGE_SIZE)));
+        setPage(p => Math.min(p + 1, Math.ceil(sorted.length / pageSize)));
       }
     };
     window.addEventListener('scroll', onScroll);
     return () => window.removeEventListener('scroll', onScroll);
-  }, [sortedProducts.length]);
+  }, [sorted.length, pageSize]);
 
-  // Slice out only the current “page”
-  const displayed = useMemo(
-    () => sortedProducts.slice(0, page * PAGE_SIZE),
-    [sortedProducts, page],
-  );
+  // 5. Visible slice
+  const displayed = useMemo(() => sorted.slice(0, page * pageSize), [sorted, page, pageSize]);
 
-  // Handlers for filter & sort (reset page & close drawer on mobile)
+  // 6. Handlers
   const handleFilterChange = useCallback((changes: Partial<SidebarFilters>) => {
     setFilters(prev => ({ ...prev, ...changes }));
     setPage(1);
-    setDrawerOpen(false);
   }, []);
   const handleSortChange = useCallback((opt: SortOption) => {
     setSortOption(opt);
     setPage(1);
-    setDrawerOpen(false);
   }, []);
+  const clearSelection = useCallback(() => setSelected(null), []);
 
-  return (
-    <Box display="flex">
-      {/* Desktop sidebar (only when no product is selected) */}
-      {!selected && !isMobile && (
-        <DesktopSidebar
-          products={allProducts}
-          sortOption={sortOption}
-          onSortChange={handleSortChange}
-          onFilterChange={handleFilterChange}
-        />
-      )}
-
-      {/* Main content */}
-      <Box sx={{ flex: 1 }}>
-        {isMobile && (
-          <Button variant="outlined" onClick={() => setDrawerOpen(true)} sx={{ mb: 2 }}>
-            Filter & Sort
-          </Button>
-        )}
-        <MainContent
-          products={selected ? [selected] : displayed}
-          loading={loading}
-          selected={selected}
-          onSelect={setSelected}
-          onClose={() => setSelected(null)}
-        />
-      </Box>
-
-      {/* Mobile drawer */}
-      {isMobile && (
-        <MobileFilterDrawer
-          open={drawerOpen}
-          onClose={() => setDrawerOpen(false)}
-          products={allProducts}
-          sortOption={sortOption}
-          onSortChange={handleSortChange}
-          onFilterChange={handleFilterChange}
-        />
-      )}
-    </Box>
-  );
-};
+  return {
+    allProducts,
+    filters,
+    sortOption,
+    loading,
+    selected,
+    page,
+    displayed,
+    setSelected,
+    clearSelection,
+    handleFilterChange,
+    handleSortChange,
+  };
+}

@@ -1,4 +1,3 @@
-// src/pages/ProfilePage.tsx
 import React, { useState, type FormEvent } from 'react';
 import {
   Container,
@@ -78,6 +77,7 @@ export const ProfilePage: React.FC = () => {
       <Snackbar
         open={snack.open}
         autoHideDuration={3000}
+        anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
         onClose={() => setSnack(s => ({ ...s, open: false }))}
       >
         <Alert severity={snack.sev} variant="filled">
