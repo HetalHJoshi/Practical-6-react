@@ -1,4 +1,3 @@
-// src/components/Sidebar/RatingFilter.tsx
 import React from 'react';
 import { Typography, FormGroup, FormControlLabel, Checkbox } from '@mui/material';
 
@@ -26,8 +25,10 @@ export const RatingFilter: React.FC<Props> = ({ selected, onChange }) => (
           key={label}
           control={
             <Checkbox
-              checked={selected.some(r => r[0] === range[0] && r[1] === range[1])}
-              onChange={e => onChange(range, e.target.checked)}
+              checked={selected.some(
+                selectedRange => selectedRange[0] === range[0] && selectedRange[1] === range[1],
+              )}
+              onChange={changeEvent => onChange(range, changeEvent.target.checked)}
             />
           }
           label={label}

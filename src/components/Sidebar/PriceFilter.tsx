@@ -1,11 +1,10 @@
-// src/components/Sidebar/PriceFilter.tsx
 import React from 'react';
 import { Typography, FormGroup, FormControlLabel, Checkbox } from '@mui/material';
 
 const priceOptions: { label: string; range: [number, number] }[] = [
-  { label: '$0–50', range: [0, 50] },
-  { label: '$51–100', range: [51, 100] },
-  { label: '$101–200', range: [101, 200] },
+  { label: '$0-50', range: [0, 50] },
+  { label: '$51-100', range: [51, 100] },
+  { label: '$101-200', range: [101, 200] },
   { label: '$201+', range: [201, Infinity] },
 ];
 
@@ -25,8 +24,10 @@ export const PriceFilter: React.FC<Props> = ({ selected, onChange }) => (
           key={label}
           control={
             <Checkbox
-              checked={selected.some(r => r[0] === range[0] && r[1] === range[1])}
-              onChange={e => onChange(range, e.target.checked)}
+              checked={selected.some(
+                selectedRange => selectedRange[0] === range[0] && selectedRange[1] === range[1],
+              )}
+              onChange={changeEvent => onChange(range, changeEvent.target.checked)}
             />
           }
           label={label}

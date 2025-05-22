@@ -1,11 +1,10 @@
-// src/components/Sidebar/BrandFilter.tsx
 import React from 'react';
 import { Typography, FormGroup, FormControlLabel, Checkbox } from '@mui/material';
 
 interface Props {
   brands: string[];
   selected: string[];
-  onChange: (br: string, checked: boolean) => void;
+  onChange: (brand: string, isChecked: boolean) => void;
 }
 
 export const BrandFilter: React.FC<Props> = ({ brands, selected, onChange }) => (
@@ -14,18 +13,20 @@ export const BrandFilter: React.FC<Props> = ({ brands, selected, onChange }) => 
       Brand
     </Typography>
     <FormGroup>
-      {brands.map(br => (
-        <FormControlLabel
-          key={br}
-          control={
-            <Checkbox
-              checked={selected.includes(br)}
-              onChange={e => onChange(br, e.target.checked)}
-            />
-          }
-          label={br}
-        />
-      ))}
+      {brands
+        .filter(brand => typeof brand === 'string' && brand.trim().length > 0)
+        .map(brand => (
+          <FormControlLabel
+            key={brand}
+            control={
+              <Checkbox
+                checked={selected.includes(brand)}
+                onChange={event => onChange(brand, event.target.checked)}
+              />
+            }
+            label={brand}
+          />
+        ))}
     </FormGroup>
   </>
 );

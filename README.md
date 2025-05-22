@@ -1,54 +1,49 @@
-# React + TypeScript + Vite
+# NoVa Mart
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+NoVa Mart is a modern, responsive e-commerce web application built with React and TypeScript. It incorporates user authentication, product browsing with advanced filtering and sorting, profile management, and real-time alerts using Material-UI components.
 
-Currently, two official plugins are available:
+# Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- User Authentication: Sign up and sign in pages with form validation, storing user in localStorage.
 
-## Expanding the ESLint configuration
+- AuthContext & Routing: Global authentication state management via React Context, with:
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+- ProtectedRoute to guard private pages.
 
-```js
-export default tseslint.config({
-  extends: [
-    // Remove ...tseslint.configs.recommended and replace with this
-    ...tseslint.configs.recommendedTypeChecked,
-    // Alternatively, use this for stricter rules
-    ...tseslint.configs.strictTypeChecked,
-    // Optionally, add this for stylistic rules
-    ...tseslint.configs.stylisticTypeChecked,
-  ],
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
-```
+- ReverseProtectedRoute to redirect authenticated users away from login/signup pages.
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+# Product Listing:
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+- Fetches dummy products from a public API.
 
-export default tseslint.config({
-  plugins: {
-    // Add the react-x and react-dom plugins
-    'react-x': reactX,
-    'react-dom': reactDom,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended typescript rules
-    ...reactX.configs['recommended-typescript'].rules,
-    ...reactDom.configs.recommended.rules,
-  },
-})
-```
+- Filters: Category, brand, rating range, price range.
+
+- Sort: Sort by product name (A–Z, Z–A) or price (low–high, high–low).
+
+- Search: Real-time search bar to filter products by keywords.
+
+- Product Detail Page: View detailed information for each product, including images and descriptions.
+
+- Profile Management: Update user profile information stored in localStorage.
+
+- Logout: Clear user session and redirect to sign-in page.
+
+- UI & Alerts: Uses Material-UI (MUI) for responsive layouts and components:
+
+- Snackbar alerts for success and error messages.
+
+- MUI inputs, buttons, cards, dialogs, and more.
+
+# Tech Stack
+
+- Framework: React 18 + TypeScript
+
+- State Management: React Context API (AuthContext)
+
+- Routing: React Router v6
+
+- UI Library: Material-UI (MUI)
+
+- HTTP Client: Axios
+
+- Storage: Browser localStorage
